@@ -35,6 +35,26 @@
         ground.receiveShadow = true;
         scene.add(ground);
 
+        // Grass texture and plane geometry for grass
+        let grassTexture = new THREE.TextureLoader().load("https://www.transparenttextures.com/patterns/grass.png");
+        function createGrass() {
+            let grassGeometry = new THREE.PlaneGeometry(0.8, 0.8);
+            let grassMaterial = new THREE.MeshStandardMaterial({ map: grassTexture, side: THREE.DoubleSide });
+            for (let i = 0; i < 50; i++) {
+                let grass = new THREE.Mesh(grassGeometry, grassMaterial);
+                grass.rotation.x = Math.PI / 2;
+                grass.position.set(
+                    (Math.random() - 0.5) * 15,
+                    -1.45,  // Slightly above the ground
+                    (Math.random() - 0.5) * 15
+                );
+                grass.castShadow = true;
+                grass.receiveShadow = true;
+                scene.add(grass);
+            }
+        }
+        createGrass();
+
         // Add a gun model and move it further up
         let gunGeometry = new THREE.BoxGeometry(0.3, 0.3, 1);
         let gunMaterial = new THREE.MeshStandardMaterial({ color: 0x222222 });
@@ -44,6 +64,16 @@
         gun.castShadow = true; // Enable shadow for gun
         scene.add(gun);
 
+        // Gun handle (cylinder shape)
+        let handleGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.4, 32);
+        let handleMaterial = new THREE.MeshStandardMaterial({ color: 0x444444 });
+        let handle = new THREE.Mesh(handleGeometry, handleMaterial);
+        handle.position.set(2, 0.2, 0); // Positioned below the gun
+        handle.rotation.x = Math.PI / 2;
+        handle.castShadow = true; // Enable shadow for handle
+        gun.add(handle);
+
+        // Gun barrel (cylinder shape)
         let barrelGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.5, 32);
         let barrelMaterial = new THREE.MeshStandardMaterial({ color: 0x444444 });
         let barrel = new THREE.Mesh(barrelGeometry, barrelMaterial);
