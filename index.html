@@ -25,9 +25,13 @@
         // Add a blue sky background
         scene.background = new THREE.Color(0x87CEEB);
 
-        // Add a ground plane
-        let groundGeometry = new THREE.PlaneGeometry(200, 200);
-        let groundMaterial = new THREE.MeshBasicMaterial({ color: 0x008800, side: THREE.DoubleSide });
+        // Load the texture for the ground
+        let textureLoader = new THREE.TextureLoader();
+        let groundTexture = textureLoader.load("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSibmqtuxaik9gbnuxKBxeDdjZfMAFu96_8eg&s");
+
+        // Add a ground plane with the texture
+        let groundGeometry = new THREE.PlaneGeometry(60, 20);
+        let groundMaterial = new THREE.MeshBasicMaterial({ map: groundTexture, side: THREE.DoubleSide });
         let ground = new THREE.Mesh(groundGeometry, groundMaterial);
         ground.rotation.x = Math.PI / 2;
         ground.position.y = -1.5;
@@ -55,7 +59,6 @@
         handle.position.set(0, -0.4, 0.4); // Slightly moved handle up and back
         gun.add(handle);
 
-        let textureLoader = new THREE.TextureLoader();
         let customTexture = textureLoader.load("https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcTBNjk4ffW2BntjfaOTxhaPBIV5dldbaOlJRFvcfyNsEfWe8GDSTmEDd10BJzVQNxaY49ZSI-1XOs6BYf8wfXyZ6s0_43oF18GlVpT2Vb8");
 
         let targets = [];
