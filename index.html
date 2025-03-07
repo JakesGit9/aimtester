@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D FPS Aim Tester</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; cursor: crosshair; }
+        #score { position: absolute; top: 10px; left: 10px; color: white; font-size: 30px; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.7); }
+        #gameOver { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 40px; font-weight: bold; display: none; text-shadow: 2px 2px 4px rgba(0,0,0,0.7); }
+    </style>
+</head>
+<body>
+    <div id="score">Score: 0</div>
+    <div id="gameOver">Game Over! Final Score: 0</div>
+
+    <script>
+        let scene = new THREE.Scene();
+        let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        let renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        let score = 0;
+        let gameOver = false;
+        let gameTime = 30;  // Game time in seconds
+        let timer;
+
+        document.getElementById("score").innerText = `Score: ${score}`;
+
+        // Add a blue sky background
+        scene.background = new THREE.Color(0x87CEEB);
+
+        // Add a ground plane
+        let groundGeometry = new THREE.PlaneGeometry(20, 20);
+        let groundMaterial = new THREE.MeshBasicMaterial({ color: 0x008800, side: THREE.DoubleSide });
+        let ground = new THREE.Mesh(groundGeometry, groundMaterial);
+        ground.rotation.x = Math.PI / 2;
+        ground.position.y = -1.5;
+        scene.add(ground);
+
+        // Add a gun model and move it further to the right-hand side
+        let gunGeometry = new THREE.BoxGeometry(0.3, 0.3, 1);
+        let gunMaterial = new THREE.MeshBasicMaterial({ color: 0x222222 });
+        let gun = new THREE.Mesh(gunGeometry, gunMaterial);
+        gun.position.set(2, -0.5, 2); // Moved further right
+        gun.rotation.y = Math.PI / 6; // Adjusted rotation to point toward the left
+        scene.add(gun);
+
+        let barrelGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.5, 32);
+        let barrelMaterial = new THREE.MeshBasicMaterial({ color: 0x444444 });
+        let barrel = new THREE.Mesh(barrelGeometry, barrelMaterial);
+        barrel.rotation.x = Math.PI / 2;
+        barrel.position.set(0, 0, -0.75);
+        gun.add(barrel);
+
+        let textureLoader = new THREE.TextureLoader();
+        let customTexture = textureLoader.load("https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcTBNjk4ffW2BntjfaOTxhaPBIV5dldbaOlJRFvcfyNsEfWe8GDSTmEDd10BJzVQNxaY49ZSI-1XOs6BYf8wfXyZ6s0_43oF18GlVpT2Vb8");
+
+        let targets = [];
+        function createTarget() {
+            if (targets.length >= 3) return;
+            let geometry = new THREE.BoxGeometry(1.2, 1.2, 1.2); // Increased size for visibility
+            let material = new THREE.MeshBasicMaterial({ map: customTexture });
+            let target = new THREE.Mesh(geometry, material);
+            let x = (Math.random() - 0.5) * 10;
+            let y = Math.random() * 3 + 1; // Ensure targets spawn above the ground and are more visible
+            let z = -5;
+            target.position.set(x, y, z);
+            scene.add(target);
+            targets.push(target);
+        }
+
+        for (let i = 0; i < 3; i++) createTarget();
+
+        camera.position.set(0, 1.5, 5);
+
+        let raycaster = new THREE.Raycaster();
+        let mouse = new THREE.Vector2();
+
+        function onMouseClick(event) {
+            if (gameOver) return;
+
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            let intersects = raycaster.intersectObjects(targets);
+            if (intersects.length > 0) {
+                scene.remove(intersects[0].object);
+                targets = targets.filter(t => t !== intersects[0].object);
+                score++;
+                document.getElementById("score").innerText = `Score: ${score}`;
+                createTarget();
+            }
+
+            // Gun recoil animation (smooth recoil)
+            gun.position.z -= 0.1;
+            setTimeout(() => gun.position.z += 0.1, 100);
+        }
+
+        window.addEventListener('click', onMouseClick);
+
+        function startGameTimer() {
+            timer = setInterval(function () {
+                gameTime--;
+                if (gameTime <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function endGame() {
+            gameOver = true;
+            document.getElementById("gameOver").innerText = `Game Over! Final Score: ${score}`;
+            document.getElementById("gameOver").style.display = "block";
+            clearInterval(timer);
+        }
+
+        startGameTimer();
+
+        function animate() {
+            if (gameOver) return;
+
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+        animate();
+    </script>
+</body>
+</html>
