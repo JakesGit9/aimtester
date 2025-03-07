@@ -7,12 +7,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         body { margin: 0; overflow: hidden; cursor: crosshair; }
-        #score { position: absolute; top: 10px; left: 10px; color: white; font-size: 30px; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.7); }
+        #score { position: absolute; top: 10px; left: 10px; color: white; font-size: 20px; }
     </style>
 </head>
 <body>
     <div id="score">Score: 0</div>
-
     <script>
         let scene = new THREE.Scene();
         let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -21,79 +20,32 @@
         document.body.appendChild(renderer.domElement);
 
         let score = 0;
-        document.getElementById("score").innerText = `Score: ${score}`;
+        document.getElementById("score").innerText = Score: ${score};
 
         // Add a blue sky background
         scene.background = new THREE.Color(0x87CEEB);
 
-        // Add a ground plane with shadows
+        // Add a ground plane
         let groundGeometry = new THREE.PlaneGeometry(20, 20);
-        let groundMaterial = new THREE.ShadowMaterial({ opacity: 0.5 });
+        let groundMaterial = new THREE.MeshBasicMaterial({ color: 0x008800, side: THREE.DoubleSide });
         let ground = new THREE.Mesh(groundGeometry, groundMaterial);
         ground.rotation.x = Math.PI / 2;
         ground.position.y = -1.5;
-        ground.receiveShadow = true;
         scene.add(ground);
 
-        // Grass texture and plane geometry for grass
-        let grassTexture = new THREE.TextureLoader().load("https://www.transparenttextures.com/patterns/grass.png");
-        function createGrass() {
-            let grassGeometry = new THREE.PlaneGeometry(1, 1);  // Larger grass planes
-            let grassMaterial = new THREE.MeshStandardMaterial({
-                map: grassTexture, 
-                side: THREE.DoubleSide, 
-                transparent: true
-            });
-            for (let i = 0; i < 100; i++) { // Increased the number of grass elements
-                let grass = new THREE.Mesh(grassGeometry, grassMaterial);
-                grass.rotation.x = Math.PI / 2;
-                grass.position.set(
-                    (Math.random() - 0.5) * 20,
-                    -1.45,  // Slightly above the ground
-                    (Math.random() - 0.5) * 20
-                );
-                grass.castShadow = true;
-                grass.receiveShadow = true;
-                scene.add(grass);
-            }
-        }
-        createGrass();
-
-        // Add a gun model and move it further up
+        // Add a gun model and move it further to the right-hand side
         let gunGeometry = new THREE.BoxGeometry(0.3, 0.3, 1);
-        let gunMaterial = new THREE.MeshStandardMaterial({ color: 0x222222 });
+        let gunMaterial = new THREE.MeshBasicMaterial({ color: 0x222222 });
         let gun = new THREE.Mesh(gunGeometry, gunMaterial);
-        gun.position.set(2, 0.5, 2); // Moved upwards
-        gun.rotation.y = Math.PI / 6;
-        gun.castShadow = true; // Enable shadow for gun
+        gun.position.set(2, -0.5, 2); // Moved further right
+        gun.rotation.y = Math.PI / 6; // Adjusted rotation to point toward the left
         scene.add(gun);
 
-        // Gun handle (using multiple geometries for a better shape)
-        let handleMaterial = new THREE.MeshStandardMaterial({ color: 0x444444 });
-
-        // Handle - lower part (a larger part to simulate the base of the handle)
-        let handleBaseGeometry = new THREE.CylinderGeometry(0.15, 0.15, 0.5, 32);
-        let handleBase = new THREE.Mesh(handleBaseGeometry, handleMaterial);
-        handleBase.position.set(2, 0.2, 0); 
-        handleBase.rotation.x = Math.PI / 2;
-        handleBase.castShadow = true;
-        gun.add(handleBase);
-
-        // Handle - upper part (smaller part to simulate the grip)
-        let handleGripGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.6, 32);
-        let handleGrip = new THREE.Mesh(handleGripGeometry, handleMaterial);
-        handleGrip.position.set(2, 0.5, 0); 
-        handleGrip.rotation.x = Math.PI / 2;
-        handleGrip.castShadow = true;
-        gun.add(handleGrip);
-
-        // Gun barrel (cylinder shape)
         let barrelGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.5, 32);
-        let barrelMaterial = new THREE.MeshStandardMaterial({ color: 0x444444 });
+        let barrelMaterial = new THREE.MeshBasicMaterial({ color: 0x444444 });
         let barrel = new THREE.Mesh(barrelGeometry, barrelMaterial);
         barrel.rotation.x = Math.PI / 2;
         barrel.position.set(0, 0, -0.75);
-        barrel.castShadow = true; // Enable shadow for barrel
         gun.add(barrel);
 
         let textureLoader = new THREE.TextureLoader();
@@ -103,13 +55,12 @@
         function createTarget() {
             if (targets.length >= 3) return;
             let geometry = new THREE.BoxGeometry(1.2, 1.2, 1.2); // Increased size for visibility
-            let material = new THREE.MeshStandardMaterial({ map: customTexture });
+            let material = new THREE.MeshBasicMaterial({ map: customTexture });
             let target = new THREE.Mesh(geometry, material);
             let x = (Math.random() - 0.5) * 10;
             let y = Math.random() * 3 + 1; // Ensure targets spawn above the ground and are more visible
             let z = -5;
             target.position.set(x, y, z);
-            target.castShadow = true; // Enable shadow for target
             scene.add(target);
             targets.push(target);
         }
@@ -130,26 +81,16 @@
                 scene.remove(intersects[0].object);
                 targets = targets.filter(t => t !== intersects[0].object);
                 score++;
-                document.getElementById("score").innerText = `Score: ${score}`;
+                document.getElementById("score").innerText = Score: ${score};
                 createTarget();
             }
 
-            // Gun recoil animation (smooth recoil)
+            // Gun recoil animation
             gun.position.z -= 0.1;
             setTimeout(() => gun.position.z += 0.1, 100);
         }
-
+        
         window.addEventListener('click', onMouseClick);
-
-        // Set up the light source for shadows
-        let light = new THREE.PointLight(0xFFFFFF, 1, 100);
-        light.position.set(10, 10, 10);
-        light.castShadow = true;
-        scene.add(light);
-
-        // Add ambient light to soften the shadows
-        let ambientLight = new THREE.AmbientLight(0x404040); // Soft light
-        scene.add(ambientLight);
 
         function animate() {
             requestAnimationFrame(animate);
