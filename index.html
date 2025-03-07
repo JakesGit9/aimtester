@@ -38,15 +38,19 @@
         // Grass texture and plane geometry for grass
         let grassTexture = new THREE.TextureLoader().load("https://www.transparenttextures.com/patterns/grass.png");
         function createGrass() {
-            let grassGeometry = new THREE.PlaneGeometry(0.8, 0.8);
-            let grassMaterial = new THREE.MeshStandardMaterial({ map: grassTexture, side: THREE.DoubleSide });
-            for (let i = 0; i < 50; i++) {
+            let grassGeometry = new THREE.PlaneGeometry(1, 1);  // Larger grass planes
+            let grassMaterial = new THREE.MeshStandardMaterial({
+                map: grassTexture, 
+                side: THREE.DoubleSide, 
+                transparent: true
+            });
+            for (let i = 0; i < 100; i++) { // Increased the number of grass elements
                 let grass = new THREE.Mesh(grassGeometry, grassMaterial);
                 grass.rotation.x = Math.PI / 2;
                 grass.position.set(
-                    (Math.random() - 0.5) * 15,
+                    (Math.random() - 0.5) * 20,
                     -1.45,  // Slightly above the ground
-                    (Math.random() - 0.5) * 15
+                    (Math.random() - 0.5) * 20
                 );
                 grass.castShadow = true;
                 grass.receiveShadow = true;
@@ -64,14 +68,24 @@
         gun.castShadow = true; // Enable shadow for gun
         scene.add(gun);
 
-        // Gun handle (cylinder shape)
-        let handleGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.4, 32);
+        // Gun handle (using multiple geometries for a better shape)
         let handleMaterial = new THREE.MeshStandardMaterial({ color: 0x444444 });
-        let handle = new THREE.Mesh(handleGeometry, handleMaterial);
-        handle.position.set(2, 0.2, 0); // Positioned below the gun
-        handle.rotation.x = Math.PI / 2;
-        handle.castShadow = true; // Enable shadow for handle
-        gun.add(handle);
+
+        // Handle - lower part (a larger part to simulate the base of the handle)
+        let handleBaseGeometry = new THREE.CylinderGeometry(0.15, 0.15, 0.5, 32);
+        let handleBase = new THREE.Mesh(handleBaseGeometry, handleMaterial);
+        handleBase.position.set(2, 0.2, 0); 
+        handleBase.rotation.x = Math.PI / 2;
+        handleBase.castShadow = true;
+        gun.add(handleBase);
+
+        // Handle - upper part (smaller part to simulate the grip)
+        let handleGripGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.6, 32);
+        let handleGrip = new THREE.Mesh(handleGripGeometry, handleMaterial);
+        handleGrip.position.set(2, 0.5, 0); 
+        handleGrip.rotation.x = Math.PI / 2;
+        handleGrip.castShadow = true;
+        gun.add(handleGrip);
 
         // Gun barrel (cylinder shape)
         let barrelGeometry = new THREE.CylinderGeometry(0.1, 0.1, 0.5, 32);
