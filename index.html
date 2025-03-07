@@ -20,7 +20,7 @@
         document.body.appendChild(renderer.domElement);
 
         let score = 0;
-        document.getElementById("score").innerText = Score: ${score};
+        document.getElementById("score").innerText = `Score: ${score}`;
 
         // Add a blue sky background
         scene.background = new THREE.Color(0x87CEEB);
@@ -37,7 +37,7 @@
         let gunGeometry = new THREE.BoxGeometry(0.3, 0.3, 1);
         let gunMaterial = new THREE.MeshBasicMaterial({ color: 0x222222 });
         let gun = new THREE.Mesh(gunGeometry, gunMaterial);
-        gun.position.set(2, -0.5, 2); // Moved further right
+        gun.position.set(1.9, 0.5, 2); // Moved gun up by setting y position to 0.5
         gun.rotation.y = Math.PI / 6; // Adjusted rotation to point toward the left
         scene.add(gun);
 
@@ -47,6 +47,13 @@
         barrel.rotation.x = Math.PI / 2;
         barrel.position.set(0, 0, -0.75);
         gun.add(barrel);
+
+        // Add a handle to the gun (a smaller box below the gun)
+        let handleGeometry = new THREE.BoxGeometry(0.2, 0.5, 0.2); // Smaller box for handle
+        let handleMaterial = new THREE.MeshBasicMaterial({ color: 0x333333 }); // Dark color for the handle
+        let handle = new THREE.Mesh(handleGeometry, handleMaterial);
+        handle.position.set(0, -0.4, 0.4); // Slightly moved handle up and back
+        gun.add(handle);
 
         let textureLoader = new THREE.TextureLoader();
         let customTexture = textureLoader.load("https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcTBNjk4ffW2BntjfaOTxhaPBIV5dldbaOlJRFvcfyNsEfWe8GDSTmEDd10BJzVQNxaY49ZSI-1XOs6BYf8wfXyZ6s0_43oF18GlVpT2Vb8");
@@ -81,7 +88,7 @@
                 scene.remove(intersects[0].object);
                 targets = targets.filter(t => t !== intersects[0].object);
                 score++;
-                document.getElementById("score").innerText = Score: ${score};
+                document.getElementById("score").innerText = `Score: ${score}`;
                 createTarget();
             }
 
