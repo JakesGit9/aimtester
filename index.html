@@ -8,10 +8,12 @@
     <style>
         body { margin: 0; overflow: hidden; cursor: crosshair; }
         #score { position: absolute; top: 10px; left: 10px; color: white; font-size: 20px; }
+        #gameOver { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 40px; color: red; display: none; }
     </style>
 </head>
 <body>
     <div id="score">Score: 0</div>
+    <div id="gameOver">Game Over!</div>
     <script>
         let scene = new THREE.Scene();
         let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -59,6 +61,7 @@
         handle.position.set(0, -0.4, 0.4); // Slightly moved handle up and back
         gun.add(handle);
 
+        // Load the target texture
         let customTexture = textureLoader.load("https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcTBNjk4ffW2BntjfaOTxhaPBIV5dldbaOlJRFvcfyNsEfWe8GDSTmEDd10BJzVQNxaY49ZSI-1XOs6BYf8wfXyZ6s0_43oF18GlVpT2Vb8");
 
         let targets = [];
@@ -75,7 +78,23 @@
             targets.push(target);
         }
 
+        let enemies = [];
+        function createEnemy() {
+            let geometry = new THREE.BoxGeometry(1.2, 1.2, 1.2);
+            let texture = new THREE.TextureLoader().load("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSfxeVHzS9hVIWUSI9AccXlxnrr-BeItqpc4A&s");
+            let material = new THREE.MeshBasicMaterial({ map: texture });
+            let enemy = new THREE.Mesh(geometry, material);
+            let x = (Math.random() - 0.5) * 10;
+            let y = Math.random() * 3 + 1;
+            let z = -5;
+            enemy.position.set(x, y, z);
+            scene.add(enemy);
+            enemies.push(enemy);
+        }
+
+        // Create targets and enemies
         for (let i = 0; i < 3; i++) createTarget();
+        for (let i = 0; i < 1; i++) createEnemy();
 
         camera.position.set(0, 1.5, 5);
 
@@ -99,11 +118,48 @@
             gun.position.z -= 0.1;
             setTimeout(() => gun.position.z += 0.1, 100);
         }
-        
+
         window.addEventListener('click', onMouseClick);
 
+        // Game over logic
+        function checkGameOver() {
+            enemies.forEach(enemy => {
+                let distance = camera.position.distanceTo(enemy.position);
+                if (distance < 2) {  // Game over condition (enemy reaches the player)
+                    document.getElementById("gameOver").style.display = "block";
+                    cancelAnimationFrame(animationFrameId);
+                }
+            });
+        }
+
+        // Check if enemy is hit by gunshot
+        function checkEnemyHit() {
+            raycaster.setFromCamera(mouse, camera);
+            let intersects = raycaster.intersectObjects(enemies);
+            if (intersects.length > 0) {
+                scene.remove(intersects[0].object);
+                enemies = enemies.filter(e => e !== intersects[0].object);
+                score++;
+                document.getElementById("score").innerText = `Score: ${score}`;
+                createEnemy();
+            }
+        }
+
+        let animationFrameId;
         function animate() {
-            requestAnimationFrame(animate);
+            animationFrameId = requestAnimationFrame(animate);
+            enemies.forEach(enemy => {
+                // Calculate direction towards the player (camera)
+                let direction = new THREE.Vector3();
+                direction.subVectors(camera.position, enemy.position).normalize();
+
+                // Move the enemy towards the camera
+                enemy.position.add(direction.multiplyScalar(0.05)); // Adjust speed
+
+            });
+
+            checkGameOver();
+            checkEnemyHit(); // Check if the enemy was shot
             renderer.render(scene, camera);
         }
         animate();
